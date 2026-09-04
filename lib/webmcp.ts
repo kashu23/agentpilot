@@ -384,6 +384,6 @@ export async function registerAgentPilotTools(bridge: ToolBridge) {
     annotations: { readOnlyHint: entry.readOnly, untrustedContentHint: false },
     execute: (input, options) => executeAgentTool(entry.name, input, bridge, options?.signal),
   }, { signal: controller.signal }));
-  await Promise.all(registrations);
+  await Promise.all(registrations.map((registration) => Promise.resolve(registration)));
   return { supported: true, dispose: () => controller.abort() };
 }
