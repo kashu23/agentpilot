@@ -14,7 +14,7 @@ from .mcp_server import MCPServer
 
 
 def print_banner():
-    banner = """
+    banner = r"""
 ============================================================
               _                    _   ____  _ _       _   
     /\       | |                  | | |  _ \(_) |     | |  
@@ -97,6 +97,27 @@ def cmd_demo(args):
     print("\n[SUCCESS] All 14 demo steps completed successfully!")
 
 
+def cmd_openai(args):
+    from .openai_bridge import OpenAIMCPBridge
+    bridge = OpenAIMCPBridge(model=args.model)
+    query = args.query or "Analyze project Launch Nova: Can we still launch Friday?"
+    print_banner()
+    print(f"[OpenAI Agent] Connecting with model: {args.model}...")
+    print(f"[Query] {query}\n")
+
+    def on_step(tool_name, fn_args):
+        print(f"  -> [OpenAI Tool Call] `{tool_name}` with args: {fn_args}")
+
+    result = bridge.chat(query, on_step=on_step)
+    if "error" in result:
+        print(f"\n[Error] {result['error']}")
+    else:
+        print(f"\n[Provider] {result.get('provider')}")
+        print("\n--- Agent Response ---")
+        print(result.get("answer"))
+    print()
+
+
 def main():
     parser = argparse.ArgumentParser(description="AgentPilot WebMCP Command Center CLI")
     subparsers = parser.add_subparsers(dest="command", help="Available subcommands")
@@ -105,6 +126,10 @@ def main():
     subparsers.add_parser("analyze", help="Run dependency analysis and find blockers")
     subparsers.add_parser("demo", help="Run the 14-Step WebMCP Judge Demo Flow")
     subparsers.add_parser("mcp", help="Start the stdio Model Context Protocol (MCP) server")
+
+    openai_parser = subparsers.add_parser("openai", help="Run OpenAI agent with WebMCP tool-calling")
+    openai_parser.add_argument("query", nargs="?", default="Can we still launch Friday?", help="Question for the OpenAI agent")
+    openai_parser.add_argument("--model", default="gpt-4o-mini", help="OpenAI model (default: gpt-4o-mini)")
 
     args = parser.parse_args()
 
@@ -117,6 +142,8 @@ def main():
     elif args.command == "mcp":
         server = MCPServer()
         server.run_stdio()
+    elif args.command == "openai":
+        cmd_openai(args)
     else:
         print_banner()
         parser.print_help()

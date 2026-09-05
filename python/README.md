@@ -36,9 +36,15 @@ python -m agentpilot.cli status
 python -m agentpilot.cli analyze
 ```
 
-### Run the 14-Step Judge Demo Flow
+### Run OpenAI Agent with WebMCP Function Calling
 ```bash
-python -m agentpilot.cli demo
+# Offline simulation or live GPT-4o (if OPENAI_API_KEY is set)
+python -m agentpilot.cli openai "Can we launch Friday?"
+```
+
+### Run Standalone Example
+```bash
+python python/examples/openai_agent.py
 ```
 
 ---

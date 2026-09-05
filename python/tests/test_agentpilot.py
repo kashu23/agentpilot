@@ -99,6 +99,18 @@ class TestAgentPilot(unittest.TestCase):
         })
         self.assertFalse(call_res["result"]["isError"])
 
+    def test_openai_mcp_bridge(self):
+        from agentpilot.openai_bridge import OpenAIMCPBridge
+        bridge = OpenAIMCPBridge(self.tools)
+        schemas = bridge.get_openai_tool_schemas()
+        self.assertEqual(len(schemas), 15)
+        self.assertEqual(schemas[0]["type"], "function")
+
+        res = bridge.chat("Check project state")
+        self.assertIn("answer", res)
+        self.assertIn("toolTrace", res)
+        self.assertGreater(len(res["toolTrace"]), 0)
+
 
 if __name__ == "__main__":
     unittest.main()

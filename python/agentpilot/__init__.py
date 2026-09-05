@@ -9,6 +9,7 @@ from .fleet import AgentFleet
 from .engine import AutonomousEngine
 from .client import AgentPilotClient
 from .mcp_server import MCPServer
+from .openai_bridge import OpenAIMCPBridge
 
 __all__ = [
     "Task",
@@ -24,4 +25,5 @@ __all__ = [
     "AutonomousEngine",
     "AgentPilotClient",
     "MCPServer",
+    "OpenAIMCPBridge",
 ]
