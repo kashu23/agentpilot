@@ -119,7 +119,44 @@ AgentPilot includes an interactive **Judge Demo Flow** controller docked at the 
 
 ---
 
-## Quick Start
+## Multi-Language Architecture & Python SDK
+
+AgentPilot provides first-class support across languages:
+- **TypeScript / React**: Modern command center frontend with browser WebMCP registration (`document.modelContext`).
+- **Python**: Full standalone Python SDK, 15 WebMCP tool implementations, Claude Desktop MCP server, and autonomous reasoning CLI.
+- **Shell / Bash & Windows Batch**: Cross-platform automation scripts.
+
+### Python Quick Start
+
+```bash
+# Run the 14-Step Judge Demo Flow directly in Python
+python -m agentpilot.cli demo
+
+# Run dependency analysis
+python -m agentpilot.cli analyze
+
+# Run unit tests
+python -m unittest discover -s python/tests
+```
+
+### Claude Desktop MCP Server (Python)
+
+Connect Anthropic Claude Desktop to AgentPilot by adding to your `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "agentpilot": {
+      "command": "python",
+      "args": ["-m", "agentpilot.mcp_server"]
+    }
+  }
+}
+```
+
+---
+
+## Quick Start (Web)
 
 ### 1. Install Dependencies
 ```bash
@@ -128,7 +165,11 @@ npm install
 
 ### 2. Run Tests
 ```bash
-npm test
+# TypeScript Type Check
+npx tsc --noEmit
+
+# Python Unit Tests
+python -m unittest discover -s python/tests
 ```
 
 ### 3. Start Development Server

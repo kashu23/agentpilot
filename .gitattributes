@@ -1,0 +1,12 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Language detection configuration for GitHub Linguist
+components/ui/** linguist-vendored
+
+# Ensure Python and Shell files are tracked and detected
+*.py text eol=lf linguist-detectable=true
+*.sh text eol=lf linguist-detectable=true
+*.bat text eol=crlf
+*.ts text eol=lf
+*.tsx text eol=lf

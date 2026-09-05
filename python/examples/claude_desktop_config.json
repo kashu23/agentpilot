@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "agentpilot": {
+      "command": "python",
+      "args": ["-m", "agentpilot.mcp_server"],
+      "env": {}
+    }
+  }
+}

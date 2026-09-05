@@ -1,0 +1,6 @@
+# Core AgentPilot operates with zero external dependencies (pure Python standard library)
+# Optional enhancements:
+# mcp>=1.0.0          # Anthropic MCP standard library
+# pydantic>=2.0.0     # Strict JSON Schema serialization
+# fastapi>=0.110.0    # WebMCP bridge API
+# uvicorn>=0.28.0     # ASGI web server

@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agentpilot"
+version = "0.2.0"
+description = "Python SDK & Model Context Protocol (MCP) Server for AgentPilot WebMCP Command Center"
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+authors = [{ name = "AgentPilot Team" }]
+keywords = ["webmcp", "mcp", "ai-agents", "agent-collaboration", "claude", "langchain"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+[project.scripts]
+agentpilot = "agentpilot.cli:main"
+agentpilot-mcp = "agentpilot.mcp_server:main"
