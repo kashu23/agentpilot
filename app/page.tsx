@@ -16,6 +16,7 @@ import {
   Command,
   Gauge,
   GitBranch,
+  Info,
   LayoutDashboard,
   Link2,
   LockKeyhole,
@@ -25,10 +26,12 @@ import {
   Play,
   Plus,
   Search,
+  Send,
   Settings,
   ShieldCheck,
   Sparkles,
   Square,
+  Star,
   UserRound,
   UsersRound,
   Wrench,
@@ -172,6 +175,13 @@ export default function Home() {
   const [newTitle, setNewTitle] = useState('');
   const [newPriority, setNewPriority] = useState<'low' | 'medium' | 'high' | 'critical'>('high');
   const [dragging, setDragging] = useState<string | null>(null);
+  const [aboutOpen, setAboutOpen] = useState(false);
+  const [feedbackName, setFeedbackName] = useState('');
+  const [feedbackEmail, setFeedbackEmail] = useState('');
+  const [feedbackCategory, setFeedbackCategory] = useState('Judge Review');
+  const [feedbackRating, setFeedbackRating] = useState('Mind-blowing 🚀');
+  const [feedbackMessage, setFeedbackMessage] = useState('');
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const projectRef = useRef(project);
   const agentStatusRef = useRef<AgentStatus>('idle');
   const runRef = useRef(0);
@@ -257,6 +267,20 @@ export default function Home() {
     bridge.record({ id: `event-${Date.now()}`, tool: proposal.tool, input: proposal.payload, result: 'Rejected by human. Workspace state was not changed.', status: 'success', time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
   };
 
+  const submitFeedback = (event: SyntheticEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!feedbackMessage.trim()) return;
+    bridge.record({
+      id: `feedback-${Date.now()}`,
+      tool: 'suggest_next_action',
+      input: { from: feedbackName || 'Anonymous Reviewer', email: feedbackEmail, category: feedbackCategory, rating: feedbackRating },
+      result: `Feedback logged [${feedbackRating}] from ${feedbackName || 'Reviewer'}: "${feedbackMessage.trim().slice(0, 80)}"`,
+      status: 'success',
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    });
+    setFeedbackSubmitted(true);
+  };
+
   const createTask = async (event: SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!newTitle.trim()) return;
@@ -279,17 +303,25 @@ export default function Home() {
               <button key={label} onClick={() => setActivePage(label)} className={`flex items-center gap-2 rounded-full px-3.5 py-2 text-[11px] font-medium transition ${activePage === label ? 'bg-[#171b18] text-white shadow-sm' : 'text-[#68716b] hover:bg-black/5 hover:text-black'}`}><Icon className="size-3.5" />{label}</button>
             ))}
           </nav>
-          <div className="relative ml-auto flex items-center gap-1">
+          <div className="relative ml-auto flex items-center gap-1.5">
             <button onClick={() => { setAskOpen(true); setAgentPrompt(''); }} className="nav-icon" aria-label="Search workspace"><Search /></button>
             <button onClick={() => setNotificationsOpen((value) => !value)} className="nav-icon relative" aria-label="Notifications"><Bell /><span className="absolute right-2 top-2 size-1.5 rounded-full bg-[#f18b5b] ring-2 ring-white" /></button>
             <button onClick={() => setActivePage('Integrations')} className="nav-icon hidden sm:grid" aria-label="Settings"><Settings /></button>
+            <button onClick={() => { setAboutOpen(true); setFeedbackSubmitted(false); }} className="flex items-center gap-1.5 rounded-full border border-black/8 bg-white px-3 py-1.5 text-[11px] font-semibold text-[#252f27] shadow-sm transition hover:border-black/20 hover:bg-[#f6f8f4]" aria-label="About AgentPilot"><Info className="size-3.5 text-[#7ea83c]" /><span className="hidden md:inline">About</span></button>
             <button className="ml-1 flex size-9 items-center justify-center rounded-full bg-[#c5a693] text-[10px] font-semibold text-white ring-2 ring-white" aria-label="User menu">KS</button>
             <button onClick={() => setMobileNav((value) => !value)} className="nav-icon xl:hidden" aria-label="Open navigation"><Menu /></button>
             {notificationsOpen && <div className="absolute right-0 top-12 z-50 w-[290px] rounded-2xl border border-black/8 bg-white p-3 shadow-[0_24px_60px_rgba(20,27,22,.18)]"><div className="flex items-center justify-between px-2 py-1"><p className="text-xs font-semibold">Notifications</p><button onClick={() => setNotificationsOpen(false)}><X className="size-3.5 text-[#7c857e]" /></button></div><div className="mt-2 rounded-xl bg-[#f4f6f1] p-3"><p className="text-[11px] font-semibold">Approval needed</p><p className="mt-1 text-[10px] leading-4 text-[#747e76]">Launch Planner wants to move production testing.</p></div></div>}
           </div>
         </header>
 
-        {mobileNav && <nav className="sticky top-[70px] z-20 flex gap-1 overflow-x-auto border-b border-black/7 bg-white/90 p-2 backdrop-blur xl:hidden">{navigation.map(({ label, icon: Icon }) => <button key={label} onClick={() => { setActivePage(label); setMobileNav(false); }} className={`flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-[10px] font-semibold ${activePage === label ? 'bg-[#171b18] text-white' : 'text-[#68716b]'}`}><Icon className="size-3.5" />{label}</button>)}</nav>}
+        {mobileNav && (
+          <nav className="sticky top-[70px] z-20 flex gap-1 overflow-x-auto border-b border-black/7 bg-white/90 p-2 backdrop-blur xl:hidden">
+            {navigation.map(({ label, icon: Icon }) => (
+              <button key={label} onClick={() => { setActivePage(label); setMobileNav(false); }} className={`flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-[10px] font-semibold ${activePage === label ? 'bg-[#171b18] text-white' : 'text-[#68716b]'}`}><Icon className="size-3.5" />{label}</button>
+            ))}
+            <button onClick={() => { setAboutOpen(true); setMobileNav(false); setFeedbackSubmitted(false); }} className="flex shrink-0 items-center gap-1.5 rounded-xl border border-black/8 bg-white px-3 py-2 text-[10px] font-semibold text-[#252f27]"><Info className="size-3.5 text-[#7ea83c]" />About</button>
+          </nav>
+        )}
 
         <div className="mx-auto max-w-[1480px] px-4 py-6 md:px-7 md:py-8">
           {activePage === 'Dashboard' && (
@@ -360,6 +392,217 @@ export default function Home() {
       <Dialog open={askOpen} onOpenChange={setAskOpen}><DialogContent className="max-h-[88vh] max-w-[680px] overflow-y-auto rounded-[26px] border-black/8 bg-[#f8f9f5] p-0 shadow-[0_40px_100px_rgba(24,32,27,.25)]"><DialogHeader className="border-b border-black/6 px-6 pb-5 pt-6 text-left"><div className="mb-3 flex items-center gap-2"><span className="grid size-8 place-items-center rounded-xl bg-[#1b211d] text-[#d7f67e]"><Sparkles className="size-4" /></span><span className="eyebrow">AGENT COMMAND</span></div><DialogTitle className="text-2xl font-semibold tracking-[-.04em]">What should AgentPilot do?</DialogTitle><DialogDescription className="text-xs text-[#747e76]">The agent uses only the structured tools visible in this workspace.</DialogDescription></DialogHeader><div className="p-6"><Textarea value={agentPrompt} onChange={(event) => setAgentPrompt(event.target.value)} placeholder="Ask about the launch plan..." className="min-h-28 resize-none rounded-2xl border-black/8 bg-white p-4 text-sm shadow-none" /><div className="mt-3 flex flex-wrap gap-2">{quickActions.map((action) => <button key={action} onClick={() => setAgentPrompt(action === 'Find blockers' ? 'Find every blocker that threatens the launch date.' : `${action} for my current launch workspace.`)} className="rounded-full border border-black/7 bg-white px-3 py-2 text-[9px] font-semibold text-[#6b756d] transition hover:border-black/20 hover:text-black">{action}</button>)}</div>{agentStatus !== 'idle' && <div className="mt-6 rounded-[20px] bg-[#1b201d] p-5 text-white"><div className="flex items-center justify-between"><div><p className="eyebrow text-white/40">AGENTPILOT</p><p className="mt-1 text-sm font-semibold">{agentStatus === 'complete' ? 'Analysis complete' : agentStatus === 'stopped' ? 'Agent stopped' : agentStatus === 'paused' ? 'Agent paused by user' : 'Thinking through tools…'}</p></div>{agentStatus === 'running' && <span className="size-4 animate-spin rounded-full border border-white/20 border-t-[#c9ee6f]" />}</div><div className="mt-5 space-y-1.5">{agentTrace.map((tool) => <div key={tool} className="flex items-center gap-2 rounded-xl bg-white/[.04] px-3 py-2.5 font-mono text-[10px] text-white/70"><CircleCheck className="size-3.5 text-[#b9e65f]" />{tool}</div>)}</div>{agentAnswer && <div className="mt-5 border-t border-white/8 pt-5"><p className="text-xs leading-6 text-white/75">{agentAnswer}</p>{agentStatus === 'complete' && <div className="mt-4 flex gap-2"><button onClick={() => { setAskOpen(false); setActivePage('Workspace'); }} className="rounded-xl bg-[#d7ff79] px-3 py-2.5 text-[10px] font-semibold text-[#182016]">Show recommendation</button><button onClick={() => pendingProposal && approveProposal(pendingProposal)} className="rounded-xl border border-white/10 px-3 py-2.5 text-[10px] font-semibold text-white/70">Fix automatically</button></div>}</div>}<div className="mt-5 grid grid-cols-2 gap-2"><button onClick={pauseAgent} disabled={agentStatus === 'complete' || agentStatus === 'stopped'} className="dark-action disabled:opacity-40">{agentStatus === 'paused' ? <Play /> : <Pause />}{agentStatus === 'paused' ? 'Resume agent' : 'Pause agent'}</button><button onClick={stopAgent} disabled={agentStatus === 'complete' || agentStatus === 'stopped'} className="dark-action text-[#efad89] disabled:opacity-40"><Square /> Stop</button></div></div>}<Button onClick={runAnalysis} disabled={!agentPrompt.trim() || agentStatus === 'running'} className="mt-5 h-11 w-full rounded-xl bg-[#171b18] text-white"><Sparkles />{agentStatus === 'running' ? 'Agent is working…' : 'Run with WebMCP tools'}</Button></div></DialogContent></Dialog>
 
       <Dialog open={addOpen} onOpenChange={setAddOpen}><DialogContent className="max-w-[460px] rounded-[24px] border-black/8 bg-[#f8f9f5] p-6"><DialogHeader className="text-left"><DialogTitle className="text-xl font-semibold tracking-[-.035em]">Add a task</DialogTitle><DialogDescription className="text-xs">Human edits update the same state agents inspect.</DialogDescription></DialogHeader><form onSubmit={createTask} className="mt-5 space-y-4"><label htmlFor="new-task-title" className="block"><span className="form-label">Task title</span><Input id="new-task-title" value={newTitle} onChange={(event) => setNewTitle(event.target.value)} maxLength={100} placeholder="e.g. Production readiness review" className="mt-2 h-11 rounded-xl border-black/8 bg-white" /></label><label htmlFor="new-task-priority" className="block"><span className="form-label">Priority</span><select id="new-task-priority" value={newPriority} onChange={(event) => setNewPriority(event.target.value as typeof newPriority)} className="mt-2 h-11 w-full rounded-xl border border-black/8 bg-white px-3 text-xs outline-none focus:ring-2 focus:ring-[#8bad4e]/30">{['low', 'medium', 'high', 'critical'].map((priority) => <option key={priority} value={priority}>{priority.charAt(0).toUpperCase() + priority.slice(1)}</option>)}</select></label><Button type="submit" className="h-11 w-full rounded-xl bg-[#171b18] text-white"><Plus /> Create task</Button></form></DialogContent></Dialog>
+
+      <Dialog open={aboutOpen} onOpenChange={setAboutOpen}>
+        <DialogContent className="max-h-[90vh] max-w-[760px] overflow-y-auto rounded-[30px] border-black/8 bg-[#f8f9f5] p-0 shadow-[0_40px_120px_rgba(20,28,23,.28)]">
+          <DialogHeader className="border-b border-white/10 bg-[#161c18] p-6 text-left text-white sm:p-7">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <span className="grid size-9 place-items-center rounded-xl bg-[#222b25] text-[#d7f67e]">
+                  <Sparkles className="size-4" />
+                </span>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-semibold tracking-[.15em] text-[#d7f67e] uppercase">WEBMCP CHALLENGE 2026</span>
+                    <span className="rounded-full bg-white/10 px-2 py-0.5 text-[9px] text-white/70">v0.2.0</span>
+                  </div>
+                  <DialogTitle className="mt-1 text-2xl font-semibold tracking-[-.03em] text-white">About AgentPilot</DialogTitle>
+                </div>
+              </div>
+            </div>
+            <DialogDescription className="mt-3 text-xs leading-5 text-white/70">
+              AgentPilot is not a chatbot that controls a website. It is the first command center where humans and AI agents share the exact same structured workspace, collaborate on complex project graphs, and safely hand control back and forth via WebMCP.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 p-6 sm:p-7">
+            {/* Quick Metrics Bar */}
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="rounded-2xl border border-black/6 bg-white p-3.5 text-center shadow-xs">
+                <p className="text-[9px] font-semibold uppercase tracking-wider text-[#79837c]">WebMCP Tools</p>
+                <p className="mt-1 text-xl font-bold tracking-tight text-[#1b221d]">15 Active</p>
+              </div>
+              <div className="rounded-2xl border border-black/6 bg-white p-3.5 text-center shadow-xs">
+                <p className="text-[9px] font-semibold uppercase tracking-wider text-[#79837c]">Agent Fleet</p>
+                <p className="mt-1 text-xl font-bold tracking-tight text-[#1b221d]">4 Roles</p>
+              </div>
+              <div className="rounded-2xl border border-black/6 bg-white p-3.5 text-center shadow-xs">
+                <p className="text-[9px] font-semibold uppercase tracking-wider text-[#79837c]">Safety Gate</p>
+                <p className="mt-1 text-xl font-bold tracking-tight text-[#6b8e34]">Human Review</p>
+              </div>
+              <div className="rounded-2xl border border-black/6 bg-white p-3.5 text-center shadow-xs">
+                <p className="text-[9px] font-semibold uppercase tracking-wider text-[#79837c]">Multi-Language</p>
+                <p className="mt-1 text-xl font-bold tracking-tight text-[#1b221d]">TS + Python</p>
+              </div>
+            </div>
+
+            {/* Core Architectural Pillars */}
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-2xl border border-black/6 bg-white p-4">
+                <div className="grid size-7 place-items-center rounded-lg bg-[#f0f4ea] text-[#6d8a39]">
+                  <Network className="size-4" />
+                </div>
+                <h3 className="mt-3 text-xs font-semibold text-[#1c241e]">1. Shared State</h3>
+                <p className="mt-1 text-[11px] leading-4 text-[#727c75]">
+                  Humans drag, edit, and modify tasks on the exact same DAG canvas that agents query and evaluate.
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-black/6 bg-white p-4">
+                <div className="grid size-7 place-items-center rounded-lg bg-[#f0f4ea] text-[#6d8a39]">
+                  <ShieldCheck className="size-4" />
+                </div>
+                <h3 className="mt-3 text-xs font-semibold text-[#1c241e]">2. Consequential Gates</h3>
+                <p className="mt-1 text-[11px] leading-4 text-[#727c75]">
+                  Destructive actions like task deletions and major schedule shifts generate proposals requiring explicit human sign-off.
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-black/6 bg-white p-4">
+                <div className="grid size-7 place-items-center rounded-lg bg-[#f0f4ea] text-[#6d8a39]">
+                  <Bot className="size-4" />
+                </div>
+                <h3 className="mt-3 text-xs font-semibold text-[#1c241e]">3. Open Protocols</h3>
+                <p className="mt-1 text-[11px] leading-4 text-[#727c75]">
+                  Supports browser WebMCP (`modelContext`), standalone Python SDK, Claude Desktop MCP, and OpenAI tool-calling.
+                </p>
+              </div>
+            </div>
+
+            {/* Interactive Feedback & Review Form */}
+            <div className="rounded-[24px] border border-black/7 bg-white p-5 sm:p-6">
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold text-[#1c241e]">Reviewer Feedback & Judge Notes</h3>
+                  <p className="mt-0.5 text-[11px] text-[#78827b]">Leave thoughts, suggestions, or hackathon review notes.</p>
+                </div>
+                <span className="flex items-center gap-1 rounded-full bg-[#f3f7ea] px-2.5 py-1 text-[10px] font-semibold text-[#668735]">
+                  <Star className="size-3 fill-current" /> Interactive
+                </span>
+              </div>
+
+              {feedbackSubmitted ? (
+                <div className="rounded-2xl border border-[#7ba23c]/20 bg-[#f4f9ea] p-5 text-center">
+                  <CircleCheck className="mx-auto size-7 text-[#769d37]" />
+                  <p className="mt-2 text-sm font-semibold text-[#1e271f]">Thank you for your feedback!</p>
+                  <p className="mt-1 text-xs text-[#6e7871]">
+                    Your note from <strong className="text-[#1c241e]">{feedbackName || 'Reviewer'}</strong> was logged into the immutable workspace audit trail.
+                  </p>
+                  <button
+                    onClick={() => {
+                      setFeedbackSubmitted(false);
+                      setFeedbackMessage('');
+                    }}
+                    className="mt-4 rounded-xl border border-black/10 bg-white px-3.5 py-2 text-[11px] font-semibold text-[#222a24] transition hover:bg-[#f6f8f4]"
+                  >
+                    Submit Another Note
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={submitFeedback} className="space-y-3.5">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label htmlFor="reviewer-name" className="block text-[10px] font-semibold uppercase tracking-wider text-[#79837c]">
+                        Your Name / Handle
+                      </label>
+                      <Input
+                        id="reviewer-name"
+                        value={feedbackName}
+                        onChange={(e) => setFeedbackName(e.target.value)}
+                        placeholder="e.g. Judge Alex"
+                        className="mt-1.5 h-10 rounded-xl border-black/8 bg-[#f9faf7] text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="reviewer-email" className="block text-[10px] font-semibold uppercase tracking-wider text-[#79837c]">
+                        Email or GitHub Handle (Optional)
+                      </label>
+                      <Input
+                        id="reviewer-email"
+                        value={feedbackEmail}
+                        onChange={(e) => setFeedbackEmail(e.target.value)}
+                        placeholder="e.g. alex@github.com"
+                        className="mt-1.5 h-10 rounded-xl border-black/8 bg-[#f9faf7] text-xs"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label htmlFor="reviewer-category" className="block text-[10px] font-semibold uppercase tracking-wider text-[#79837c]">
+                        Feedback Category
+                      </label>
+                      <select
+                        id="reviewer-category"
+                        value={feedbackCategory}
+                        onChange={(e) => setFeedbackCategory(e.target.value)}
+                        className="mt-1.5 h-10 w-full rounded-xl border border-black/8 bg-[#f9faf7] px-3 text-xs outline-none focus:ring-2 focus:ring-[#8bad4e]/30"
+                      >
+                        <option value="Judge Review">Hackathon Judge Review</option>
+                        <option value="Feature Suggestion">Feature Suggestion</option>
+                        <option value="WebMCP Architecture">WebMCP Architecture</option>
+                        <option value="Bug Report">Bug / Improvement</option>
+                        <option value="General Feedback">General Feedback</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <span className="block text-[10px] font-semibold uppercase tracking-wider text-[#79837c]">Quick Impression</span>
+                      <div className="mt-1.5 flex flex-wrap gap-1.5">
+                        {['Mind-blowing 🚀', 'Super Sleek ✨', 'Great Architecture 🧠', 'Safe WebMCP 🛡️'].map((rating) => (
+                          <button
+                            type="button"
+                            key={rating}
+                            onClick={() => setFeedbackRating(rating)}
+                            className={`rounded-full px-2.5 py-1.5 text-[10px] font-semibold transition ${
+                              feedbackRating === rating
+                                ? 'bg-[#181e1a] text-white shadow-xs'
+                                : 'border border-black/7 bg-[#f9faf7] text-[#6b756d] hover:border-black/20'
+                            }`}
+                          >
+                            {rating}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="reviewer-message" className="block text-[10px] font-semibold uppercase tracking-wider text-[#79837c]">
+                      Review Notes or Message *
+                    </label>
+                    <Textarea
+                      id="reviewer-message"
+                      value={feedbackMessage}
+                      onChange={(e) => setFeedbackMessage(e.target.value)}
+                      placeholder="What impressed you? How does AgentPilot fit your vision of AI human collaboration?"
+                      className="mt-1.5 min-h-20 resize-none rounded-xl border-black/8 bg-[#f9faf7] p-3 text-xs leading-5"
+                      required
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2 pt-1 sm:flex-row sm:items-center sm:justify-between">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAboutOpen(false);
+                        setActivePage('Workspace');
+                        runAnalysis();
+                      }}
+                      className="text-left text-[11px] font-semibold text-[#668735] hover:underline"
+                    >
+                      ⚡ Quick: Launch 14-Step Judge Demo
+                    </button>
+                    <Button type="submit" className="h-10 rounded-xl bg-[#171b18] px-5 text-white hover:bg-black">
+                      <Send className="size-3.5" /> Submit Review Note
+                    </Button>
+                  </div>
+                </form>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }
